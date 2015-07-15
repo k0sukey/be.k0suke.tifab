@@ -1,0 +1,6 @@
+<Alloy>
+	<View onClick="doClick" onTouchstart="doTouch" onTouchcancel="doTouch" onTouchend="doTouch">
+		<View id="circle"/>
+		<Label id="title"/>
+	</View>
+</Alloy>

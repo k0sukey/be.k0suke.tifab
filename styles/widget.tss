@@ -1,0 +1,10 @@
+'#widget': {
+	zIndex: 1000
+}
+'#circle': {
+	opacity: 1.0,
+	touchEnabled: false
+}
+'#title': {
+	touchEnabled: false
+}

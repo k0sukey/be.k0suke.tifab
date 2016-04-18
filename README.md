@@ -90,6 +90,14 @@ $.index.open();
 }
 ```
 
+## Programmatically toggle
+
+Toggle event was exported. You can programmatically toggle.
+
+```javascript
+$.fab.toggle();
+```
+
 ## ToDo
 
 * Drop shadow

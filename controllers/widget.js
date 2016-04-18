@@ -7,8 +7,8 @@ if (args.direction !== 'up' && args.direction !== 'right' &&
 	args.direction = 'up';
 }
 
-var WIDTH = 60,
-	HEIGHT = 60,
+var WIDTH = 56,
+	HEIGHT = 56,
 	TOGGLE = false,
 	ITEMS = [],
 	MARGIN = 10;
@@ -46,43 +46,62 @@ function open() {
 	_.each(ITEMS, function(item, index){
 		parent.add(item);
 
-		var bounce = {},
-			destination = {};
+		var bounce = {
+				x: 0,
+				y: 0,
+			},
+			destination = {
+				x: 0,
+				y: 0,
+			};
 
 		switch (args.direction) {
 			case 'up':
-				destination.bottom = (ITEMS.length - 1 - index) * (item.getHeight() + MARGIN) + $.widget.getHeight() + $.widget.getBottom() + MARGIN;
-				bounce.bottom = destination.bottom + MARGIN;
+				destination.y = ((ITEMS.length - 1 - index) * (item.getHeight() + MARGIN) + $.widget.getHeight() + $.widget.getBottom()) - MARGIN;
+				bounce.y = (destination.y + MARGIN / 2) * -1;
+				destination.y = destination.y * -1;
 				break;
 			case 'right':
-				destination.left = (ITEMS.length - 1 - index) * (item.getWidth() + MARGIN) + $.widget.getWidth() + $.widget.getLeft() + MARGIN;
-				bounce.left = destination.left + MARGIN;
+				destination.x = (ITEMS.length - 1 - index) * (item.getWidth() + MARGIN) + $.widget.getWidth() + $.widget.getLeft();
+				bounce.x = destination.x + MARGIN / 2;
 				break;
 			case 'down':
-				destination.top = (ITEMS.length - 1 - index) * (item.getHeight() + MARGIN) + $.widget.getHeight() + $.widget.getTop() + MARGIN;
-				bounce.top = destination.top + MARGIN;
+				destination.y = (ITEMS.length - 1 - index) * (item.getHeight() + MARGIN) + $.widget.getHeight() + $.widget.getTop() - MARGIN;
+				bounce.y = destination.y + MARGIN / 2;
 				break;
 			case 'left':
-				destination.right = (ITEMS.length - 1 - index) * (item.getWidth() + MARGIN) + $.widget.getWidth() + $.widget.getRight() + MARGIN;
-				bounce.right = destination.right + MARGIN;
+				destination.x = (ITEMS.length - 1 - index) * (item.getWidth() + MARGIN) + $.widget.getWidth() + $.widget.getRight();
+				bounce.x = (destination.x + MARGIN / 2) * -1;
+				destination.x = destination.x * -1;
 				break;
 		}
 
-		item.animate(_.extend(bounce, {
+		if (OS_ANDROID) {
+			destination.x = destination.x * Ti.Platform.displayCaps.logicalDensityFactor;
+			destination.y = destination.y * Ti.Platform.displayCaps.logicalDensityFactor;
+			bounce.x = bounce.x * Ti.Platform.displayCaps.logicalDensityFactor;
+			bounce.y = bounce.y * Ti.Platform.displayCaps.logicalDensityFactor;
+		}
+
+		item.animate({
+			transform: Ti.UI.create2DMatrix().translate(bounce.x, bounce.y),
 			curve: Ti.UI.ANIMATION_CURVE_EASE_IN,
 			opacity: 1.0,
 			duration: 100,
-			delay: index * 100
-		}), function(){
-			item.animate(_.extend(destination, {
+			delay: index * 10
+		}, function(){
+			item.animate({
+				transform: Ti.UI.create2DMatrix().translate(destination.x, destination.y),
 				curve: Ti.UI.ANIMATION_CURVE_EASE_OUT,
 				duration: 100
-			}), function(){
-				item.applyProperties({
-					touchEnabled: true
-				});
-
+			}, function(){
 				if (index >= ITEMS.length - 1) {
+					_.each(ITEMS, function(_item){
+						_item.applyProperties({
+							touchEnabled: true
+						});
+					});
+
 					$.widget.applyProperties({
 						touchEnabled: true
 					});
@@ -121,13 +140,13 @@ function close() {
 				break;
 		}
 
-		item.animate(_.extend({
+		item.animate({
 			transform: Ti.UI.create2DMatrix(),
 			curve: Ti.UI.ANIMATION_CURVE_EASE_IN_OUT,
 			opacity: 0.0,
 			duration: 100,
 			delay: index * 10
-		}, position), function(){
+		}, function(){
 			parent.remove(item);
 
 			if (index >= ITEMS.length - 1) {
@@ -175,7 +194,7 @@ var doItemclick = _.debounce(function(e){
 	doClick();
 
 	$.widget.fireEvent('itemclick', _.extend({
-		index: e.source.id.replace(/^__child/, '')
+		index: parseInt(e.source.id.replace(/^__child/, ''), 10)
 	}, e));
 }, 500, true);
 

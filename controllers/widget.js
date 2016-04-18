@@ -190,6 +190,10 @@ var doClick = _.debounce(function(){
 }, 500, true);
 exports.toggle = doClick;
 
+exports.isOpen = function(){
+	return TOGGLE;
+};
+
 var doItemclick = _.debounce(function(e){
 	doClick();
 

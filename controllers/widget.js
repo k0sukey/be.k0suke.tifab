@@ -218,10 +218,17 @@ var widget = {
 		verticalAlign: _.has(args, 'verticalAlign') ? args.verticalAlign : Ti.UI.TEXT_VERTICAL_ALIGNMENT_CENTER,
 		right:0
 	};
+	image = {
+		width: _.has(args, 'width') ? args.width : WIDTH,
+		height: _.has(args, 'height') ? args.height : HEIGHT,
+		image: _.has(args, 'image') ? args.image : '',
+		right:15
+	}
 
 $.widget.applyProperties(widget);
 $.circle.applyProperties(circle);
 $.title.applyProperties(title);
+$.image.applyProperties(image);
 
 _.each(args.items, function(item, index){
 	var container = Ti.UI.createView(_.extend(widget, {
@@ -282,17 +289,30 @@ _.each(args.items, function(item, index){
 		touchEnabled: false
 	})));
 	
-
-	container.add(Ti.UI.createLabel(_.extend(title, {
-		width: _.has(item, 'width') ? item.width : WIDTH,
-		height: _.has(item, 'height') ? item.height : HEIGHT,
-		text: _.has(item, 'title') ? item.title : '',
-		color: _.has(item, 'color') ? item.color : '#808080',
-		font: _.has(item, 'font') ? item.font : {},
-		textAlign: _.has(item, 'textAlign') ? item.textAlign : Ti.UI.TEXT_ALIGNMENT_CENTER,
-		verticalAlign: _.has(item, 'verticalAlign') ? item.verticalAlign : Ti.UI.TEXT_VERTICAL_ALIGNMENT_CENTER,
-		touchEnabled: false
-	})));
+	if(_.has(item, "image"))
+	{
+		Ti.API.info(item);
+		container.add(Ti.UI.createImageView(_.extend(image, {
+			width: _.has(item, 'imageWidth') ? item.imageWidth : WIDTH,
+			height: _.has(item, 'imageHeight') ? item.imageHeight : HEIGHT,
+			image: _.has(item, 'image') ? item.image : '',
+		})));
+		
+	}
+	else
+	{
+	
+		container.add(Ti.UI.createLabel(_.extend(title, {
+			width: _.has(item, 'width') ? item.width : WIDTH,
+			height: _.has(item, 'height') ? item.height : HEIGHT,
+			text: _.has(item, 'title') ? item.title : '',
+			color: _.has(item, 'color') ? item.color : '#808080',
+			font: _.has(item, 'font') ? item.font : {},
+			textAlign: _.has(item, 'textAlign') ? item.textAlign : Ti.UI.TEXT_ALIGNMENT_CENTER,
+			verticalAlign: _.has(item, 'verticalAlign') ? item.verticalAlign : Ti.UI.TEXT_VERTICAL_ALIGNMENT_CENTER,
+			touchEnabled: false
+		})));
+	}
 
 	container.addEventListener('click', doItemclick);
 	container.addEventListener('touchstart', doTouch);

@@ -7,8 +7,8 @@ if (args.direction !== 'up' && args.direction !== 'right' &&
 	args.direction = 'up';
 }
 
-var WIDTH = 56,
-	HEIGHT = 56,
+var WIDTH = 60,
+	HEIGHT = 60,
 	TOGGLE = false,
 	ITEMS = [],
 	MARGIN = 10;
@@ -21,7 +21,7 @@ function doTouch(e) {
 			return;
 		}
 
-		e.source.getChildren()[0].applyProperties({
+		e.source.children[0].applyProperties({
 			borderColor: e.type === 'touchstart' ? args.items[index].focusedColor : args.items[index].backgroundColor || '#ccfafafa'
 		});
 	} else {
@@ -29,7 +29,7 @@ function doTouch(e) {
 			return;
 		}
 
-		e.source.getChildren()[0].applyProperties({
+		e.source.children[0].applyProperties({
 			borderColor: e.type === 'touchstart' ? args.focusedColor : args.backgroundColor || '#ccfafafa'
 		});
 	}
@@ -41,67 +41,48 @@ function open() {
 		source: $.widget
 	});
 
-	var parent = $.widget.getParent();
+	var parent = $.widget.parent;
 
 	_.each(ITEMS, function(item, index){
 		parent.add(item);
 
-		var bounce = {
-				x: 0,
-				y: 0,
-			},
-			destination = {
-				x: 0,
-				y: 0,
-			};
+		var bounce = {},
+			destination = {};
 
 		switch (args.direction) {
 			case 'up':
-				destination.y = ((ITEMS.length - 1 - index) * (item.getHeight() + MARGIN) + $.widget.getHeight() + $.widget.getBottom()) - MARGIN;
-				bounce.y = (destination.y + MARGIN / 2) * -1;
-				destination.y = destination.y * -1;
+				destination.bottom = (ITEMS.length - 1 - index) * (item.height + MARGIN) + $.widget.height + $.widget.bottom + MARGIN;
+				bounce.bottom = destination.bottom + MARGIN;
 				break;
 			case 'right':
-				destination.x = (ITEMS.length - 1 - index) * (item.getWidth() + MARGIN) + $.widget.getWidth() + $.widget.getLeft();
-				bounce.x = destination.x + MARGIN / 2;
+				destination.left = (ITEMS.length - 1 - index) * (item.width + MARGIN) + $.widget.width + $.widget.left + MARGIN;
+				bounce.left = destination.left + MARGIN;
 				break;
 			case 'down':
-				destination.y = (ITEMS.length - 1 - index) * (item.getHeight() + MARGIN) + $.widget.getHeight() + $.widget.getTop() - MARGIN;
-				bounce.y = destination.y + MARGIN / 2;
+				destination.top = (ITEMS.length - 1 - index) * (item.height + MARGIN) + $.widget.height + $.widget.top + MARGIN;
+				bounce.top = destination.top + MARGIN;
 				break;
 			case 'left':
-				destination.x = (ITEMS.length - 1 - index) * (item.getWidth() + MARGIN) + $.widget.getWidth() + $.widget.getRight();
-				bounce.x = (destination.x + MARGIN / 2) * -1;
-				destination.x = destination.x * -1;
+				destination.right = (ITEMS.length - 1 - index) * (item.width + MARGIN) + $.widget.width + $.widget.right + MARGIN;
+				bounce.right = destination.right + MARGIN;
 				break;
 		}
 
-		if (OS_ANDROID) {
-			destination.x = destination.x * Ti.Platform.displayCaps.logicalDensityFactor;
-			destination.y = destination.y * Ti.Platform.displayCaps.logicalDensityFactor;
-			bounce.x = bounce.x * Ti.Platform.displayCaps.logicalDensityFactor;
-			bounce.y = bounce.y * Ti.Platform.displayCaps.logicalDensityFactor;
-		}
-
-		item.animate({
-			transform: Ti.UI.create2DMatrix().translate(bounce.x, bounce.y),
+		item.animate(_.extend(bounce, {
 			curve: Ti.UI.ANIMATION_CURVE_EASE_IN,
 			opacity: 1.0,
 			duration: 100,
-			delay: index * 10
-		}, function(){
-			item.animate({
-				transform: Ti.UI.create2DMatrix().translate(destination.x, destination.y),
+			delay: index * 100
+		}), function(){
+			item.animate(_.extend(destination, {
 				curve: Ti.UI.ANIMATION_CURVE_EASE_OUT,
 				duration: 100
-			}, function(){
-				if (index >= ITEMS.length - 1) {
-					_.each(ITEMS, function(_item){
-						_item.applyProperties({
-							touchEnabled: true
-						});
-					});
+			}), function(){
+				item.applyProperties({
+					touchEnabled: true
+				});
 
+				if (index >= ITEMS.length - 1) {
 					$.widget.applyProperties({
 						touchEnabled: true
 					});
@@ -117,7 +98,7 @@ function close() {
 		source: $.widget
 	});
 
-	var parent = $.widget.getParent(),
+	var parent = $.widget.parent,
 		position = {};
 
 	_.each(ITEMS, function(item, index){
@@ -127,26 +108,26 @@ function close() {
 
 		switch (args.direction) {
 			case 'up':
-				position.bottom = $.widget.getBottom();
+				position.bottom = $.widget.bottom;
 				break;
 			case 'right':
-				position.left = $.widget.getLeft();
+				position.left = $.widget.left;
 				break;
 			case 'down':
-				position.top = $.widget.getTop();
+				position.top = $.widget.top;
 				break;
 			case 'left':
-				position.right = $.widget.getRight();
+				position.right = $.widget.right;
 				break;
 		}
 
-		item.animate({
-			transform: Ti.UI.create2DMatrix(),
+		item.animate(_.extend({
+			transform: Ti.UI.createMatrix2D(),
 			curve: Ti.UI.ANIMATION_CURVE_EASE_IN_OUT,
 			opacity: 0.0,
 			duration: 100,
 			delay: index * 10
-		}, function(){
+		}, position), function(){
 			parent.remove(item);
 
 			if (index >= ITEMS.length - 1) {
@@ -172,12 +153,12 @@ var doClick = _.debounce(function(){
 
 	if (_.has(args, 'rotation') && args.rotation) {
 		$.title.animate({
-			transform: TOGGLE ? Ti.UI.create2DMatrix().rotate(-15) : Ti.UI.create2DMatrix().rotate(60),
+			transform: TOGGLE ? Ti.UI.createMatrix2D().rotate(-15) : Ti.UI.createMatrix2D().rotate(60),
 			curve: Ti.UI.ANIMATION_CURVE_EASE_IN,
 			duration: 100
 		}, function(){
 			$.title.animate({
-				transform: TOGGLE ? Ti.UI.create2DMatrix() : Ti.UI.create2DMatrix().rotate(45),
+				transform: TOGGLE ? Ti.UI.createMatrix2D() : Ti.UI.createMatrix2D().rotate(45),
 				curve: Ti.UI.ANIMATION_CURVE_EASE_OUT,
 				duration: 100
 			}, function(){
@@ -190,15 +171,11 @@ var doClick = _.debounce(function(){
 }, 500, true);
 exports.toggle = doClick;
 
-exports.isOpen = function(){
-	return TOGGLE;
-};
-
 var doItemclick = _.debounce(function(e){
 	doClick();
 
 	$.widget.fireEvent('itemclick', _.extend({
-		index: parseInt(e.source.id.replace(/^__child/, ''), 10)
+		index: e.source.id.replace(/^__child/, '')
 	}, e));
 }, 500, true);
 
@@ -220,14 +197,16 @@ var widget = {
 		bottom: _.has(args, 'bottom') ? args.bottom : null,
 		left: _.has(args, 'left') ? args.left : null,
 		width: _.has(args, 'width') ? args.width : WIDTH,
-		height: _.has(args, 'height') ? args.height : HEIGHT
+		height: _.has(args, 'height') ? args.height : HEIGHT,
+		//borderColor:"#ff0000"
 	},
 	circle = {
 		width: _.has(args, 'width') ? args.width : WIDTH,
 		height: _.has(args, 'height') ? args.height : HEIGHT,
 		borderRadius: _.has(args, 'width') ? args.width / 2 : WIDTH / 2,
 		borderWidth: _.has(args, 'width') ? args.width / 2 : WIDTH / 2,
-		borderColor: _.has(args, 'backgroundColor') ? args.backgroundColor : '#ccfafafa'
+		borderColor: _.has(args, 'backgroundColor') ? args.backgroundColor : '#ccfafafa',
+		right:0
 	},
 	title = {
 		width: _.has(args, 'width') ? args.width : WIDTH,
@@ -236,7 +215,8 @@ var widget = {
 		color: _.has(args, 'color') ? args.color : '#808080',
 		font: _.has(args, 'font') ? args.font : {},
 		textAlign: _.has(args, 'textAlign') ? args.textAlign : Ti.UI.TEXT_ALIGNMENT_CENTER,
-		verticalAlign: _.has(args, 'verticalAlign') ? args.verticalAlign : Ti.UI.TEXT_VERTICAL_ALIGNMENT_CENTER
+		verticalAlign: _.has(args, 'verticalAlign') ? args.verticalAlign : Ti.UI.TEXT_VERTICAL_ALIGNMENT_CENTER,
+		right:0
 	};
 
 $.widget.applyProperties(widget);
@@ -250,13 +230,48 @@ _.each(args.items, function(item, index){
 		right: _.has(args, 'right') ? args.right : null,
 		bottom: _.has(args, 'bottom') ? args.bottom : null,
 		left: _.has(args, 'left') ? args.left : null,
-		width: _.has(item, 'width') ? item.width : WIDTH,
+		width: _.has(item, 'width') ? item.width : Ti.UI.SIZE,
 		height: _.has(item, 'height') ? item.height : HEIGHT,
+		// borderColor:"#ff0000",
 		touchEnabled: false,
 		zIndex: 1000 - index,
 		opacity: 0.0
 	}));
-
+	
+	if(item.hasOwnProperty("desc"))
+	{
+		Ti.API.log(item.desc);
+		var descView = Ti.UI.createView({
+			right:70,
+			backgroundColor:_.has(item.desc, "backgroundColor")?item.desc.backgroundColor:"#d91a1a1a",
+			width:Ti.UI.SIZE,
+			height:35,
+			borderRadius:_.has(item.desc, "borderRadius")?item.desc.borderRadius:10,
+			layout:"horizontal"
+		});
+		var descPaddingLeft = Ti.UI.createView({
+			width:_.has(item.desc, "paddingLeft")?item.desc.paddingLeft:10,
+			top:0,
+			left:0
+		});
+		descView.add(descPaddingLeft);
+		var descLabel = Ti.UI.createLabel({
+			color:_.has(item.desc, "color")?item.desc.color:"#ffffff",
+			left:0,
+			text:_.has(item.desc, "title")?item.desc.title:"#Item "+index,
+			font:{
+				fontSize:_.has(item.desc, "fontSize")?item.desc.font.fontSize:14,
+			}
+		});
+		descView.add(descLabel);
+		var descPaddingRight = Ti.UI.createView({
+			width:_.has(item.desc, "paddingHRight")?item.desc.paddingRight:10,
+			top:0,
+			left:0
+		});
+		descView.add(descPaddingRight);
+		container.add(descView);
+	}
 	container.add(Ti.UI.createView(_.extend(circle, {
 		width: _.has(item, 'width') ? item.width : WIDTH,
 		height: _.has(item, 'height') ? item.height : HEIGHT,
@@ -266,6 +281,7 @@ _.each(args.items, function(item, index){
 		opacity: 1.0,
 		touchEnabled: false
 	})));
+	
 
 	container.add(Ti.UI.createLabel(_.extend(title, {
 		width: _.has(item, 'width') ? item.width : WIDTH,
